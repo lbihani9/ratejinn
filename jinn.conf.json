@@ -1,0 +1,69 @@
+{
+  "timeUnit": "seconds",
+  "enableLoadShedding": true, 
+  "shedThreshold": 80, 
+  "enableConcurrentRequestLimit": true, 
+  "concurrentRequestIdentificationPattern": "X-Auth-Token", 
+  "definitions": [
+    {
+      "scope": "endpoints",
+      "pattern": "/api/users",
+      "isPriority": true, 
+      "rateLimiter": {
+        "type": "request-rate-limiter",
+        "params": { 
+          "count": 500,
+          "windowLength": 2
+        }
+      },
+      "algorithm": {
+        "type": "token-bucket", 
+        "params": {
+          "bucketCapacity": 500,
+          "windowLength": 1,
+          "refill": 250
+        }
+      }
+    },
+    {
+      "scope": "endpoints",
+      "pattern": "/api/users/*/programs",
+      "rateLimiter": {
+        "type": "request-rate-limiter",
+        "enablePerUser": true,
+        "userIdentificationPattern": "X-User-IP", 
+        "params": {
+          "count": 500,
+          "windowLength": 2
+        }
+      },
+      "algorithm": {
+        "type": "token-bucket",
+        "params": {
+          "bucketCapacity": 500,
+          "windowLength": 1,
+          "refill": 250
+        }
+      }
+    },
+    {
+      "scope": "endpoints",
+      "pattern": "*", 
+      "rateLimiter": {
+        "type": "request-rate-limiter",
+        "params": {
+          "count": 500,
+          "windowLength": 2
+        }
+      },
+      "algorithm": {
+        "type": "token-bucket",
+        "params": {
+          "bucketCapacity": 500,
+          "windowLength": 1,
+          "refill": 250
+        }
+      }
+    }
+  ]
+}
