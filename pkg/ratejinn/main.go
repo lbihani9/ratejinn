@@ -2,7 +2,6 @@ package ratejinn
 
 import (
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/lbihani9/ratejinn/internal/config"
@@ -19,17 +18,20 @@ type RateJinn struct {
 
 func NewLimiter(opt *Options) (*RateJinn, error) {
 	if opt.RedisClient == nil {
-		// TODO: Print error
 		log.Println("RedisClient is mandatory option to setup rate jinn.")
 		return nil, errors.New("redis client is required to setup rate jinn")
 	}
 
-	cfg, err := config.LoadConfig(opt.ConfigFile)
+	cfg, err := config.Load(opt.ConfigFile)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println(cfg)
+	_, treeError := cfg.BuildTree()
+	if treeError != nil {
+		return nil, treeError
+	}
+
 	rj := RateJinn{}
 
 	return &rj, nil

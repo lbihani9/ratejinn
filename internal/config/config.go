@@ -7,35 +7,13 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const (
-	defaultConcurrentRequestLimit = 20
+	defaultConcurrentRequestLimit = 10
 	defaultShedThreshold          = 80
 )
-
-type AlgorithmParams struct {
-	BucketCapacity int `json:"bucketCapacity"`
-	WindowLength   int `json:"windowLength"`
-	Refill         int `json:"refill"`
-}
-
-type Algorithm struct {
-	Type   string          `json:"type"`
-	Params AlgorithmParams `json:"params"`
-}
-
-type RateLimiterParams struct {
-	Count        int `json:"count"`
-	WindowLength int `json:"windowLength"`
-}
-
-type RateLimiter struct {
-	Type                      string            `json:"type"`
-	Params                    RateLimiterParams `json:"params"`
-	EnablePerUser             bool              `json:"enablePerUser"`
-	UserIdentificationPattern string            `json:"userIdentificationPattern"`
-}
 
 type RateLimiterDefinition struct {
 	Scope       string      `json:"scope"`
@@ -55,7 +33,22 @@ type RateJinnConfig struct {
 	Definitions                            []RateLimiterDefinition `json:"definitions"`
 }
 
-func LoadConfig(path string) (*RateJinnConfig, error) {
+// PathNode represents a node in a hierarchical configuration tree for the RateJinn configuration.
+// Each node has a name, an optional embedded JinnNode for storing configuration details, and
+// a map of children nodes keyed by their names, allowing for flexible and nested configuration structures.
+type PathNode struct {
+	Name string
+	*JinnNode
+	Children map[string]*PathNode
+}
+
+// JinnNode is the leaf node containing the configuration for its prefix
+type JinnNode struct {
+	IsPriority bool
+	// TODO: Add further config paramters
+}
+
+func Load(path string) (*RateJinnConfig, error) {
 	if path == "" {
 		log.Println("configuration file name missing. Using 'jinn.conf.json' as default name")
 		path = "jinn.conf.json"
@@ -82,14 +75,14 @@ func LoadConfig(path string) (*RateJinnConfig, error) {
 		return nil, err
 	}
 
-	if err := validateConfig(&config); err != nil {
+	if err := config.validate(); err != nil {
 		return nil, err
 	}
 
 	return &config, nil
 }
 
-func validateConfig(cfg *RateJinnConfig) error {
+func (cfg *RateJinnConfig) validate() error {
 	if cfg.TimeUnit == "" {
 		return errors.New("time unit is a mandatory field")
 	}
@@ -106,7 +99,7 @@ func validateConfig(cfg *RateJinnConfig) error {
 
 	if cfg.EnableConcurrentRequestLimit {
 		if cfg.ConcurrentRequestIdentificationPattern == "" {
-			return errors.New("concurrent request indentification pattern cannot be empty if concurrent request limit is enable")
+			return errors.New("concurrent request identification pattern cannot be empty if concurrent request limit is enabled")
 		}
 
 		if cfg.ConcurrentRequestLimit == 0 {
@@ -114,6 +107,66 @@ func validateConfig(cfg *RateJinnConfig) error {
 		}
 	}
 
-	// TODO: Add validation checks for other fields as well.
-	return errors.New("invalid jinn configuration")
+	if len(cfg.Definitions) == 0 {
+		return errors.New("at least one definition is required")
+	}
+
+	for _, def := range cfg.Definitions {
+		// TODO: ensure RateLimiter and Algorithm are not empty
+
+		if err := def.RateLimiter.ValidateParams(); err != nil {
+			return err
+		}
+
+		if err := def.Algorithm.ValidateParams(); err != nil {
+			return err
+		}
+
+		if def.Scope != "endpoints" {
+			return errors.New("scope must be 'endpoints'")
+		}
+
+		if def.Pattern == "" || def.Pattern[0] != '/' {
+			return errors.New("pattern is required and it must start with '/'")
+		}
+
+		// When "/" pattern is present in configs, other definitions will be ignored.
+		if def.Pattern == "/" {
+			cfg.Definitions = []RateLimiterDefinition{
+				{
+					Scope:       def.Scope,
+					Pattern:     def.Pattern,
+					IsPriority:  def.IsPriority,
+					RateLimiter: def.RateLimiter,
+					Algorithm:   def.Algorithm,
+				},
+			}
+			break
+		}
+	}
+
+	return errors.New("invalid ratejinn configurations")
+}
+
+func (cfg *RateJinnConfig) BuildTree() (*PathNode, error) {
+	root := &PathNode{"/", nil, make(map[string]*PathNode)}
+
+	for _, def := range cfg.Definitions {
+		split := strings.Split(def.Pattern, "/")
+		ptr := root
+		for _, part := range split {
+			if part == "" {
+				continue
+			}
+			_, ok := ptr.Children[part]
+			if !ok {
+				ptr.Children[part] = &PathNode{part, nil, make(map[string]*PathNode)}
+			}
+			ptr = ptr.Children[part]
+		}
+		ptr.JinnNode = &JinnNode{def.IsPriority}
+		// TODO: Add further config parameters
+	}
+
+	return root, nil
 }

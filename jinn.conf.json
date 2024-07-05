@@ -3,7 +3,8 @@
   "enableLoadShedding": true, 
   "shedThreshold": 80, 
   "enableConcurrentRequestLimit": true, 
-  "concurrentRequestIdentificationPattern": "X-Auth-Token", 
+  "concurrentRequestIdentificationPattern": "X-Auth-Token",
+  "concurrentRequestLimit": 10,
   "definitions": [
     {
       "scope": "endpoints",
