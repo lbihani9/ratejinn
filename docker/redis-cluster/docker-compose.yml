@@ -1,0 +1,62 @@
+services:
+  redis-node-1:
+    image: redis:7.4.3
+    container_name: redis-node-1
+#    network_mode: host
+    ports:
+      - "6001:6001"
+      - "16001:16001" # for cluster bus
+    volumes:
+      - ./logs/redis-node-1:/var/log/redis
+    command: >
+      redis-server --port 6001
+                   --cluster-enabled yes
+                   --cluster-config-file nodes.conf
+                   --cluster-node-timeout 5000
+                   --appendonly yes
+                   --logfile /var/log/redis/redis.log
+                   --cluster-announce-ip redis-node-1
+                   --cluster-announce-port 6001
+                   --cluster-announce-bus-port 16001
+
+
+  redis-node-2:
+    image: redis:7.4.3
+    container_name: redis-node-2
+#    network_mode: host
+    ports:
+      - "6002:6002"
+      - "16002:16002"
+    volumes:
+      - ./logs/redis-node-2:/var/log/redis
+    command: >
+      redis-server --port 6002
+                   --cluster-enabled yes
+                   --cluster-config-file nodes.conf
+                   --cluster-node-timeout 5000
+                   --appendonly yes
+                   --logfile /var/log/redis/redis.log
+                   --cluster-announce-ip redis-node-2
+                   --cluster-announce-port 6002
+                   --cluster-announce-bus-port 16002
+
+
+  redis-node-3:
+    image: redis:7.4.3
+    container_name: redis-node-3
+#    network_mode: host
+    ports:
+      - "6003:6003"
+      - "16003:16003"
+    volumes:
+      - ./logs/redis-node-3:/var/log/redis
+    command: >
+      redis-server --port 6003
+                   --cluster-enabled yes
+                   --cluster-config-file nodes.conf
+                   --cluster-node-timeout 5000
+                   --appendonly yes
+                   --logfile /var/log/redis/redis.log
+                   --cluster-announce-ip redis-node-3
+                   --cluster-announce-port 6003
+                   --cluster-announce-bus-port 16003

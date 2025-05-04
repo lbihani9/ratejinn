@@ -1,0 +1,32 @@
+logging:
+  level:
+    org.springframework.boot.context.properties.bind: DEBUG
+#    org.springframework.data.redis: DEBUG  # For debugging Redis connections
+#    io.lettuce: DEBUG  # For debugging Lettuce client
+
+---
+ratejinn:
+  redis:
+    mode: standalone
+
+    standalone:
+      host: 127.0.0.1
+      port: 6379
+
+#    cluster:
+#      nodes:
+#        - 127.0.0.1:6001
+#        - 127.0.0.1:6002
+#        - 127.0.0.1:6003
+
+  adapter:
+    pool: 10
+
+  limiter:
+    global:
+      rateLimit:
+        strategy: token-bucket
+        unit: 1 # This is in seconds always
+        bucketCapacity: 100
+        tokenConsumptionPerRequest: 1
+        refillRate: 10
