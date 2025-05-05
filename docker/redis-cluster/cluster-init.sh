@@ -6,16 +6,25 @@ rm -rf ./logs/*/redis.log
 nodes_startup=$(docker-compose up -d) 2>&1
 
 if [[ $? -ne 0 ]]; then
-  echo "Failed to start"
+  echo "Failed to startup redis nodes"
   exit 1
 fi
 
-#echo "Waiting for the nodes to completely start before setting up cluster"
-sleep 10
+echo "Waiting for the nodes to completely start before setting up the cluster..."
+sleep 5
 
-docker exec -it redis-node-1 redis-cli \
+# Setting up cluster
+cluster_setup=$(docker exec -it redis-node-1 redis-cli \
     --cluster create redis-node-1:6001 redis-node-2:6002 redis-node-3:6003 \
-    --cluster-replicas 0
+    --cluster-replicas 0 --cluster-yes) 2>&1
 
+if [[ $? -ne 0 ]]; then
+  echo "Failed to setup redis cluster. Tearing down redis docker nodes..."
+  docker-compose down -v
+  exit 1
+fi
 
-echo "Redis cluster setup done!"
+echo "Redis cluster is ready!"
+echo "Here are the cluster details: "
+docker exec -it redis-node-1 redis-cli -p 6001 cluster nodes
+

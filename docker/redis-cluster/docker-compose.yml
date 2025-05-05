@@ -2,12 +2,13 @@ services:
   redis-node-1:
     image: redis:7.4.3
     container_name: redis-node-1
-#    network_mode: host
     ports:
       - "6001:6001"
       - "16001:16001" # for cluster bus
     volumes:
       - ./logs/redis-node-1:/var/log/redis
+    networks:
+      - redis-cluster
     command: >
       redis-server --port 6001
                    --cluster-enabled yes
@@ -23,12 +24,13 @@ services:
   redis-node-2:
     image: redis:7.4.3
     container_name: redis-node-2
-#    network_mode: host
     ports:
       - "6002:6002"
       - "16002:16002"
     volumes:
       - ./logs/redis-node-2:/var/log/redis
+    networks:
+      - redis-cluster
     command: >
       redis-server --port 6002
                    --cluster-enabled yes
@@ -50,6 +52,8 @@ services:
       - "16003:16003"
     volumes:
       - ./logs/redis-node-3:/var/log/redis
+    networks:
+      - redis-cluster
     command: >
       redis-server --port 6003
                    --cluster-enabled yes
@@ -60,3 +64,7 @@ services:
                    --cluster-announce-ip redis-node-3
                    --cluster-announce-port 6003
                    --cluster-announce-bus-port 16003
+
+networks:
+  redis-cluster:
+    driver: bridge

@@ -7,12 +7,25 @@ import io.lettuce.core.RedisURI;
 import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.resource.ClientResources;
+import io.lettuce.core.resource.DnsResolver;
 import lombok.Getter;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 
 @Getter
 public class ClusterRedisExecutor implements RedisExecutor {
+
+    public static class RedisDockerClusterDnsResolver implements DnsResolver {
+
+        @Override
+        public InetAddress[] resolve(String s) throws UnknownHostException {
+            // Note: Any service discovery based implementation can also be easily implemented here.
+            return new InetAddress[]{ InetAddress.getLocalHost() };
+        }
+    }
 
     private final RedisClusterClient redisClusterClient;
     private StatefulRedisClusterConnection<String, String> connection;
@@ -26,7 +39,11 @@ public class ClusterRedisExecutor implements RedisExecutor {
                 )
                 .toList();
 
-        this.redisClusterClient = RedisClusterClient.create(redisURIS);
+        ClientResources clientResources = ClientResources.builder()
+                .dnsResolver(new RedisDockerClusterDnsResolver())
+                .build();
+
+        this.redisClusterClient = RedisClusterClient.create(clientResources, redisURIS);
         this.connection = this.redisClusterClient.connect();
     }
 

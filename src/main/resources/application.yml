@@ -7,17 +7,17 @@ logging:
 ---
 ratejinn:
   redis:
-    mode: standalone
+    mode: cluster
 
-    standalone:
-      host: 127.0.0.1
-      port: 6379
+#    standalone:
+#      host: 127.0.0.1
+#      port: 6379
 
-#    cluster:
-#      nodes:
-#        - 127.0.0.1:6001
-#        - 127.0.0.1:6002
-#        - 127.0.0.1:6003
+    cluster:
+      nodes:
+        - 127.0.0.1:6001
+        - 127.0.0.1:6002
+        - 127.0.0.1:6003
 
   adapter:
     pool: 10

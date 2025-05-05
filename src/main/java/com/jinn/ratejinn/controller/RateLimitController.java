@@ -3,7 +3,6 @@ package com.jinn.ratejinn.controller;
 import com.jinn.ratejinn.dto.RateLimitRequest;
 import com.jinn.ratejinn.dto.RateLimitResponse;
 import com.jinn.ratejinn.service.RateJinnService;
-import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,11 +24,6 @@ public class RateLimitController {
 
     public RateLimitController(RateJinnService rateJinnService) {
         this.rateJinnService = rateJinnService;
-    }
-
-    @PostConstruct
-    public void logConfig() {
-        logger.debug("Controller ran successfully");
     }
 
     @PostMapping

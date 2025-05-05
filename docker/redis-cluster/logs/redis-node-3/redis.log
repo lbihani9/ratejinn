@@ -1,0 +1,14 @@
+1:C 05 May 2025 16:58:06.949 # WARNING: Changing databases number from 16 to 1 since we are in cluster mode
+1:C 05 May 2025 16:58:06.951 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+1:C 05 May 2025 16:58:06.952 * Redis version=7.4.3, bits=64, commit=00000000, modified=0, pid=1, just started
+1:C 05 May 2025 16:58:06.952 * Configuration loaded
+1:M 05 May 2025 16:58:06.953 * monotonic clock: POSIX clock_gettime
+1:M 05 May 2025 16:58:06.954 * Running mode=cluster, port=6003.
+1:M 05 May 2025 16:58:06.955 * No cluster configuration found, I'm 9b06f354983fdde56adf14654e852e3a89c596c0
+1:M 05 May 2025 16:58:06.956 * Server initialized
+1:M 05 May 2025 16:58:06.957 * Creating AOF base file appendonly.aof.1.base.rdb on server start
+1:M 05 May 2025 16:58:06.958 * Creating AOF incr file appendonly.aof.1.incr.aof on server start
+1:M 05 May 2025 16:58:06.958 * Ready to accept connections tcp
+1:M 05 May 2025 16:58:12.049 * configEpoch set to 3 via CLUSTER SET-CONFIG-EPOCH
+1:M 05 May 2025 16:58:12.072 * Address updated for node 97143a2f09f884825abc6757b33dfc50977a0b6d (), now redis-node-1:6001
+1:M 05 May 2025 16:58:16.989 * Cluster state changed: ok
